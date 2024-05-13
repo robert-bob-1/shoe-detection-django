@@ -4,13 +4,43 @@ import os
 
 from selenium import webdriver
 
-driver = webdriver.Chrome()
+photos_dir = 'photos/'
+
+
+def scrape_product_photos(soup, product_name):
+    # Find all the images on the page
+    all_images = soup.find_all('img')
+
+    product_images = []
+
+    # Iterate through the images and download the ones with width > 300
+    for i, image in enumerate(all_images):
+        try:
+            img_width = int(image.get('width', 0))
+            if img_width > 300:  # value selected to exclude other low res shoes. No other relevant attributes to differentiate other than width
+                img_src = image.get('src')
+                img_name = f'{photos_dir}{product_name}_{i}.jpg'
+                # Download image
+                img_data = requests.get(img_src)
+
+                product_images.append(img_data.content)
+                # with open(img_name, 'wb') as file:
+                #     file.write(img_data.content)
+                print(f"Downloaded {img_name}")
+        except Exception as e:
+            print(f"Error downloading image {i}: {e}")
+            # Ignore images with invalid width
+            pass
+
 
 # Method to scrape product page for photos
-def scrape_product_photos(url):
+def scrape_product_object(url):
+    print('before driver')
+    driver = webdriver.Chrome()
     # Open a Chrome page with the given URL and get the html from the source
     driver.get(url)
     page_source = driver.page_source
+    print('before soup')
 
     # Parse the HTML
     soup = BeautifulSoup(page_source, 'html.parser')
@@ -18,29 +48,17 @@ def scrape_product_photos(url):
     if not os.path.exists('photos'):
         os.makedirs('photos')
 
-    # Find all the images on the page
-    images = soup.find_all('img')
+    print('before product name')
 
-    # Iterate through the images and download the ones with width > 300
-    for i, image in enumerate(images):
-        try:
-            img_width = int(image.get('width', 0))
-            if img_width > 300:
-                img_src = image.get('src')
-                img_name = f'photos/{i}.jpg'
-                # Download image
-                img_data = requests.get(img_src)
+    product_name = soup.find('strong', class_='product-name').text.replace(' ', '-')
+    print(product_name)
 
-                with open(img_name, 'wb') as file:
-                    file.write(img_data.content)
-                print(f"Downloaded {img_name}")
-        except Exception as e:
-            print(f"Error downloading image {i}: {e}")
-            # Ignore images with invalid width
-            pass
+    # scrape_product_photos(soup)
+
 
 # Script to get all product pages' links in a page of a website (epantofi in this case; adjust class name for other websites)
 def scrape_product_urls(url):
+    driver = webdriver.Chrome()
     driver.get(url)
     page_source = driver.page_source
 
