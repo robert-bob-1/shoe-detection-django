@@ -3,13 +3,19 @@ import numpy as np
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 import cv2
+from ultralytics import YOLO
+import tensorflow as tf
+import torch
 
 from evaluate.utils.debug import display_image
 
 from .utils.scraping import scrape_product_object, scrape_product_urls
 from .models import ShoeMetadata
 
-MODE = 'debug'
+DISPLAY_IMAGES = True
+PATH_TO_MODEL = 'best-seg.pt'
+SEGMENTATION_MODEL = YOLO(PATH_TO_MODEL)
+
 
 # Create your views here.
 @api_view(['POST'])
@@ -63,29 +69,39 @@ def upload_image(request):
         numpy_image = np.fromstring(image.read(), np.uint8)
         img_cv2 = cv2.imdecode(numpy_image, cv2.IMREAD_COLOR)
 
-        if MODE == 'debug':
-            display_image(img_cv2)
+        # if DISPLAY_IMAGES == True:
+        #     display_image(img_cv2)
 
-        # print(image)
-        # plt.imshow(image)
-        # # Read the image
-        # img_cv2 = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+        # Calculate blurriness
+        # color_ = cv2.cvtColor(img_cv2, cv2.COLOR_BGR2RGB)
+        blur_score = cv2.Laplacian(img_cv2, cv2.CV_64F).var()
 
-        # # Calculate blurriness
-        # blur_score = cv2.Laplacian(img_cv2, cv2.CV_64F).var()
+        # Print the blurriness score; it is inversely proportional to the sharpness of the image
+        print(f"Blurriness score: {blur_score}")
 
-        # # Print the blurriness score
-        # print(f"Blurriness score: {blur_score}")
+        # Run inference
+        results = SEGMENTATION_MODEL(img_cv2, show=False, device=0)
 
-        # import matplotlib.pyplot as plt
-        # cv2.imshow('Image', img_cv2)
+        # Extract mask
+        masks = results[0].masks
+
+        # Extract the first mask pixel coordinates
+        mask = masks.xy[0]
+        print(mask)
+
+        # Create an empty mask image with the same dimensions as the input image
+        mask_img = np.zeros(img_cv2.shape[:2], dtype=np.uint8)
+
+        # Fill the mask image with the detected mask
+        # for segment in mask:
+        #     segment = np.array(segment, dtype=np.int32)
+        #     cv2.fillPoly(mask_img, [segment], 255)
+
+        # cv2.imshow('mask', mask_img)
         # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
 
-        # # Display the image
-        # plt.imshow(img)
-        # plt.axis('off')
-        # plt.show()
+
+
     except Exception as e:
         return Response({'error': str(e)}, status=500)
 
