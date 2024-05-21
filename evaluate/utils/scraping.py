@@ -2,8 +2,9 @@ from bs4 import BeautifulSoup
 import requests
 import os
 from selenium import webdriver
+from django.core.files.base import ContentFile
 
-from evaluate.models import ShoeMetadata
+from evaluate.models import ShoeImage, ShoeMetadata
 
 photos_dir = 'photos/'
 
@@ -63,9 +64,9 @@ def scrape_product_object(url):
 
     product_images = scrape_product_photos(soup, product_name)
 
-    shoeMetadata = ShoeMetadata(name=product_name, images=product_images, price=price, url=url)
+    shoeMetadata = ShoeMetadata(name=product_name, price=price, url=url)
 
-    return shoeMetadata
+    return shoeMetadata, product_images
 
 
 # Script to get all product pages' links in a page of a website (epantofi in this case; adjust class name for other websites)
@@ -84,3 +85,24 @@ def scrape_product_urls(url):
 
     print(product_hrefs[0:3])
     return product_hrefs
+
+def scrape_product_object_and_save(url):
+    shoe_metadata = None
+    shoe_images = []
+    try:
+        print(url)
+        shoe_metadata, shoe_images = scrape_product_object(url)
+    except Exception as e:
+        raise Exception(f"Error scraping product: {e}")
+
+    # Save the shoe metadata and shoe images
+    try:
+        shoe_metadata.save()
+        for image in shoe_images:
+            image_file = ContentFile(image)
+            image_file.name = f'{shoe_metadata.name}.jpg'
+
+            ShoeImage(shoe=shoe_metadata, image=image_file).save()
+
+    except Exception as e:
+        raise Exception(f"Error saving product: {e}")
