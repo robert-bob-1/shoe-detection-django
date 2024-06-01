@@ -6,7 +6,9 @@ from django.core.files.storage import default_storage
 # Create your models here.
 
 class ShoeMetadata(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
+    brand = models.CharField(max_length=30, default='Brand')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     url = models.URLField()
 
