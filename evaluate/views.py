@@ -6,18 +6,17 @@ import cv2
 from ultralytics import YOLO
 from django.db import transaction
 
+from .utils.debug import display_image
+
 from .utils.image_processing import shoe_detection_pipeline
 from .utils.scraping import scrape_product_object_and_save, scrape_product_urls
 from .models import ShoeImage, ShoeMetadata
 
 DISPLAY_IMAGES = False
-PATH_TO_MODEL = 'best-seg.pt'
-SEGMENTATION_MODEL = YOLO(PATH_TO_MODEL)
-
 
 # Create your views here.
 
-@transaction.atomic
+# @transaction.atomic
 @api_view(['POST'])
 def scrape_product(request):
     url = request.data.get('url')
@@ -28,9 +27,26 @@ def scrape_product(request):
         return Response({'error': 'URL is required'}, status=400)
 
     try:
-        scrape_product_object_and_save(url)
+        shoe_metadata, shoe_images = scrape_product_object_and_save(url)
     except Exception as e:
         return Response({'error': f'Error processing product: {str(e)}'}, status=500)
+
+    try:
+        for image in shoe_images:
+            extracted_shoe_img = shoe_detection_pipeline(image, DISPLAY_IMAGES)
+
+            img_encoded = cv2.imencode('.jpg', extracted_shoe_img)[1].tostring()
+            # multipart_form_data = {
+            #     'file': ('shoe.jpg', img_encoded, 'image/jpeg')
+            # }
+
+            # response = requests.post(f'http://localhost:8081/compute-properties-and-save?id={shoe_metadata.id}', files=multipart_form_data)
+
+            # if response.status_code != 200:
+            #     raise Exception(response.json())
+
+    except Exception as e:
+        return Response({'error': f'Error sending product: {str(e)}'}, status=500)
 
     return Response({'message': 'Product processed successfully'}, status=200)
 
@@ -43,7 +59,29 @@ def scrape_page(request):
     try:
         product_urls = scrape_product_urls(url)
         for product_url in product_urls:
-            scrape_product_object_and_save(product_url)
+            try:
+                shoe_metadata, shoe_images = scrape_product_object_and_save(product_url)
+            except Exception as e:
+                return Response({'error': f'Error processing product: {str(e)}'}, status=500)
+
+            # try:
+            #     for image in shoe_images:
+                    # extracted_shoe_img = shoe_detection_pipeline(image, DISPLAY_IMAGES)
+
+                    # img_encoded = cv2.imencode('.jpg', extracted_shoe_img)[1].tostring()
+                    # multipart_form_data = {
+                    #     'file': ('shoe.jpg', img_encoded, 'image/jpeg')
+                    # }
+
+                    # response = requests.post(f'http://localhost:8081/compute-properties-and-save?id={shoe_metadata.id}', files=multipart_form_data)
+
+                    # if response.status_code != 200:
+                    #     raise Exception(response.json())
+
+            # except Exception as e:
+            #     return Response({'error': f'Error sending product: {str(e)}'}, status=500)
+
+
     except Exception as e:
         return Response({'error': str(e)}, status=500)
 

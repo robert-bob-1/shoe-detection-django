@@ -58,6 +58,7 @@ def scrape_product_object(url):
     print(product_brand)
 
     price = soup.find('div', class_='final-price').text.replace('Lei', '').strip()
+    price = price.replace('.', '')
     price = price.replace(',', '.')
     price = float(price)
     print(price)
@@ -89,6 +90,7 @@ def scrape_product_urls(url):
 def scrape_product_object_and_save(url):
     shoe_metadata = None
     shoe_images = []
+    image_files = []
     try:
         print(url)
         shoe_metadata, shoe_images = scrape_product_object(url)
@@ -98,11 +100,15 @@ def scrape_product_object_and_save(url):
     # Save the shoe metadata and shoe images
     try:
         shoe_metadata.save()
-        for image in shoe_images:
-            image_file = ContentFile(image)
-            image_file.name = f'{shoe_metadata.name}.jpg'
+        for i in range(len(shoe_images)):
+            image_files.append(shoe_images[i])
+            image_file = ContentFile(shoe_images[i])
+            image_file.name = f'{shoe_metadata.name}_{i}.jpg'
 
-            ShoeImage(shoe=shoe_metadata, image=image_file).save()
+            shoe_image = ShoeImage(shoe=shoe_metadata, image=image_file)
+            shoe_image.save()
 
     except Exception as e:
         raise Exception(f"Error saving product: {e}")
+
+    return shoe_metadata, image_files

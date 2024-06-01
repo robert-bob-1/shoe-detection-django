@@ -1,9 +1,9 @@
 
 
-# Method to
 import cv2
 import numpy as np
 from ultralytics import YOLO
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from evaluate.utils.debug import display_image
 from evaluate.utils.post_inference import extract_shoe
@@ -12,8 +12,12 @@ PATH_TO_MODEL = 'best-seg.pt'
 SEGMENTATION_MODEL = YOLO(PATH_TO_MODEL)
 
 def shoe_detection_pipeline(image, DISPLAY_IMAGES=False):
+    numpy_image = None
+    if isinstance(image, InMemoryUploadedFile):
+        numpy_image = np.frombuffer(image.read(), np.uint8)
+    else:
+        numpy_image = np.frombuffer(image, np.uint8)
     # Read the image
-    numpy_image = np.fromstring(image.read(), np.uint8)
     img_cv2 = cv2.imdecode(numpy_image, cv2.IMREAD_COLOR)
 
     if DISPLAY_IMAGES == True:
