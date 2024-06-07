@@ -15,9 +15,23 @@ class ShoeImageSerializer(serializers.ModelSerializer):
             return base64.b64encode(image_file.read()).decode('utf-8')
 
 
-class ShoeMetadataSerializer(serializers.ModelSerializer):
+class ShoeMetadataAndImagesSerializer(serializers.ModelSerializer):
     images = ShoeImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = ShoeMetadata
         fields = ['id', 'name', 'brand', 'price', 'url', 'images']
+
+class ShoeMetadataAndImageSerializer(serializers.ModelSerializer):
+    image = ShoeImageSerializer(read_only=True)
+
+    class Meta:
+        model = ShoeMetadata
+        fields = ['id', 'name', 'brand', 'price', 'url', 'image']
+
+class ShoeImageAndMetadataSerializer(serializers.ModelSerializer):
+    shoe = ShoeMetadataAndImagesSerializer(read_only=True)  # Reuse existing ShoeMetadata serializer
+
+    class Meta:
+        model = ShoeImage
+        fields = ['id', 'image', 'shoe']  # Include the image field

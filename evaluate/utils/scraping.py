@@ -90,6 +90,7 @@ def scrape_product_urls(url):
 def scrape_product_object_and_save(url):
     shoe_metadata = None
     shoe_images = []
+    shoe_images_ids = []
     image_files = []
     try:
         print(url)
@@ -101,14 +102,18 @@ def scrape_product_object_and_save(url):
     try:
         shoe_metadata.save()
         for i in range(len(shoe_images)):
+            # skip the 4th image as it is almost always the sole of the shoe
+            if i == 3:
+                continue
             image_files.append(shoe_images[i])
             image_file = ContentFile(shoe_images[i])
             image_file.name = f'{shoe_metadata.name}_{i}.jpg'
 
             shoe_image = ShoeImage(shoe=shoe_metadata, image=image_file)
             shoe_image.save()
+            shoe_images_ids.append(shoe_image.id)
 
     except Exception as e:
         raise Exception(f"Error saving product: {e}")
 
-    return shoe_metadata, image_files
+    return shoe_metadata, image_files, shoe_images_ids

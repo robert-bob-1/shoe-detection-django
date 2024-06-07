@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view
 
 from evaluate.models import ShoeMetadata, ShoeImage
 
-from shoes.serializer import ShoeMetadataSerializer
+from shoes.serializer import ShoeMetadataAndImagesSerializer
 
 @api_view(['GET'])
 def get_all(request):
@@ -18,7 +18,7 @@ def get_all(request):
     paginator = Paginator(shoes, page_size)
     page = paginator.get_page(page_number)
 
-    serialized_shoes = ShoeMetadataSerializer(page, many=True)
+    serialized_shoes = ShoeMetadataAndImagesSerializer(page, many=True)
     return Response({
         'shoes': serialized_shoes.data,
         'page': page.number,

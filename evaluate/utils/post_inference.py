@@ -32,3 +32,24 @@ def extract_shoe(inference_results, cv_image, DISPLAY_IMAGES=False):
         cv2.destroyAllWindows()
 
     return shoe_img
+
+def extract_classification_data(class_results):
+    result = class_results[0]
+    probabilities = result.probs
+
+    class_names = []
+    class_confidences = []
+    # print(f"result.names = {result.names}")
+    # Extract confidence scores for each class
+    confidences = probabilities.data.cpu().numpy()
+    for key, class_name in result.names.items():
+        class_names.append(class_name)
+        class_confidences.append(float(confidences[key]))
+
+    classification_data = list(zip(class_names, class_confidences))
+    # print(f"Classification data: {classification_data}")
+
+    sorted_classification_data = sorted(classification_data, key=lambda x: x[1], reverse=True)
+    print(f"Sorted classification data: {sorted_classification_data}")
+
+    return sorted_classification_data

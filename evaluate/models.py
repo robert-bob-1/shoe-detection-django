@@ -28,10 +28,20 @@ class ShoeImage(models.Model):
             default_storage.delete(instance.image.name)
 
 class ShoeProperties(models.Model):
-    shoe = models.ForeignKey(ShoeMetadata, on_delete=models.CASCADE)
+    shoe_image = models.ForeignKey(ShoeImage, on_delete=models.CASCADE)
     percentage_red = models.FloatField()
     percentage_green = models.FloatField()
     percentage_blue = models.FloatField()
 
     def __str__(self):
-        return self.shoe.name
+        return self.shoe_image.shoe.name
+
+class ShoeDominantColor(models.Model):
+    shoe_image = models.ForeignKey(ShoeImage, on_delete=models.CASCADE)
+    frequency_percentage = models.FloatField()
+    red = models.IntegerField()
+    green = models.IntegerField()
+    blue = models.IntegerField()
+
+    def __str__(self):
+        return self.shoe_image.shoe.name
