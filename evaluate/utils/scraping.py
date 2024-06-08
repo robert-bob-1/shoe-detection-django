@@ -65,7 +65,7 @@ def scrape_product_object(url):
 
     product_images = scrape_product_photos(soup, product_name)
 
-    shoeMetadata = ShoeMetadata(name=product_name, price=price, url=url)
+    shoeMetadata = ShoeMetadata(name=product_name, brand=product_brand, price=price, url=url)
 
     return shoeMetadata, product_images
 

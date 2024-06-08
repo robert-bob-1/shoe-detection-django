@@ -2,11 +2,12 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from .utils.image_processing import extract_shoe_info_from_image
 from .utils.cpp_service import compute_CPP_properties_and_save
+from .utils.database import save_image_classification_data, save_product_classification_data
+from .utils.image_processing import extract_shoe_info_from_image
 from .utils.scraping import scrape_product_object_and_save, scrape_product_urls
 
-DISPLAY_IMAGES = True
+DISPLAY_IMAGES = False
 
 @api_view(['POST'])
 def scrape_product(request):
@@ -23,16 +24,23 @@ def scrape_product(request):
         return Response({'error': f'Error processing product: {str(e)}'}, status=500)
 
     try:
+        all_classification_data = []
         for i in range(len(shoe_images)):
             try:
+
                 extracted_shoe, sorted_classification_data = extract_shoe_info_from_image(
                     shoe_images[i],
-                    display_image= DISPLAY_IMAGES
+                    DISPLAY_IMAGES= DISPLAY_IMAGES
                 )
+                save_image_classification_data(shoe_images_ids[i], sorted_classification_data)
+                all_classification_data.append(sorted_classification_data)
 
-                compute_CPP_properties_and_save(extracted_shoe, shoe_images_ids[i])
+                # compute_CPP_properties_and_save(extracted_shoe, shoe_images_ids[i])
             except Exception as e:
+                print(f'Error processing image: {str(e)}')
                 continue
+
+        save_product_classification_data(shoe_metadata, all_classification_data)
 
     except Exception as e:
         return Response({'error': f'Error sending product: {str(e)}'}, status=500)
@@ -77,7 +85,7 @@ def evaluate_color(request):
     if not image:
         return Response({'error': 'Image is required'}, status=400)
 
-    extract_shoe_info_from_image(image, DISPLAY_IMAGES=DISPLAY_IMAGES)
+    extracted_shoe_image, sorted_classification_data = extract_shoe_info_from_image(image, DISPLAY_IMAGES=False)
 
     # try:
     #     # Send the extracted shoe image to the Evaluator API for further processing

@@ -23,8 +23,8 @@ def extract_shoe_info_from_image(image, DISPLAY_IMAGES=True):
         sorted_classification_data = shoe_class_from_cv2_image(cv2_image)
 
     except Exception as e:
-        print(f'Error processing image: {str(e)}')
-        raise Exception(f'Error processing image: {str(e)}')
+        print(f'extract_shoe_info_from_image: {str(e)}')
+        raise Exception(f'extract_shoe_info_from_image: {str(e)}')
 
     return extracted_shoe_img, sorted_classification_data
 
@@ -38,7 +38,7 @@ def segmented_shoe_from_cv2_image(cv2_image, DISPLAY_IMAGES=False):
 
     return extracted_shoe_img
 
-def shoe_class_from_cv2_image(img_cv2):
+def shoe_class_from_cv2_image(img_cv2) -> list:
     # Compute the shoe class
     classification_model = YOLO('../models/yolov8-classification-last.pt')
     class_results = classification_model([img_cv2], show=True, save=False, device=0)
@@ -46,6 +46,8 @@ def shoe_class_from_cv2_image(img_cv2):
     # Extract the classification data
     sorted_classification_data = extract_classification_data(class_results)
     print(f"sorted_classification_data: {sorted_classification_data}")
+
+    return sorted_classification_data
 
 def from_InMemoryFile_to_cv2image(inMemoryUploadedFile, DISPLAY_IMAGES=True) -> np.ndarray:
     if inMemoryUploadedFile is None:

@@ -46,10 +46,13 @@ def extract_classification_data(class_results):
         class_names.append(class_name)
         class_confidences.append(float(confidences[key]))
 
-    classification_data = list(zip(class_names, class_confidences))
+    classification_data = {class_name: confidence for class_name, confidence in zip(class_names, class_confidences)}
     # print(f"Classification data: {classification_data}")
 
-    sorted_classification_data = sorted(classification_data, key=lambda x: x[1], reverse=True)
+    # Sort the classification data by confidence score
+    sorted_classification_data = {k: v for k, v in sorted(classification_data.items(), key=lambda item: item[1], reverse=True)}
     print(f"Sorted classification data: {sorted_classification_data}")
 
     return sorted_classification_data
+
+

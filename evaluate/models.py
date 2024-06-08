@@ -11,6 +11,8 @@ class ShoeMetadata(models.Model):
     brand = models.CharField(max_length=30, default='Brand')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     url = models.URLField()
+    classification = models.CharField(max_length=30, default='Unknown')
+    classification_confidence = models.FloatField(default=0.0)
 
     def __str__(self):
         return self.name
@@ -42,6 +44,18 @@ class ShoeDominantColor(models.Model):
     red = models.IntegerField()
     green = models.IntegerField()
     blue = models.IntegerField()
+
+    def __str__(self):
+        return self.shoe_image.shoe.name
+
+class ShoeClassification(models.Model):
+    shoe_image= models.ForeignKey(ShoeImage, on_delete=models.CASCADE)
+    boots_confidence = models.FloatField()
+    flip_flops_confidence = models.FloatField()
+    loafers_confidence = models.FloatField()
+    sandals_confidence = models.FloatField()
+    sneakers_confidence = models.FloatField()
+    soccer_shoes_confidence = models.FloatField()
 
     def __str__(self):
         return self.shoe_image.shoe.name
