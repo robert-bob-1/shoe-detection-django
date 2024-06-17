@@ -1,8 +1,12 @@
 import cv2
 from django.shortcuts import get_object_or_404
+from matplotlib import pyplot as plt
 import requests
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+
+from skimage.feature import hog
+from skimage import exposure
 
 
 from .utils.cpp_service import compute_CPP_properties_and_save

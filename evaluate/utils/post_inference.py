@@ -36,17 +36,17 @@ def extract_shoe(inference_results, cv_image, DISPLAY_IMAGES=True):
 
     # Combine the shoe with the white background
     shoe_img = cv2.bitwise_or(shoe_img, white_background)
-    # if DISPLAY_IMAGES == True:
-    cv2.imshow('shoe', shoe_img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    if DISPLAY_IMAGES == True:
+        cv2.imshow('shoe', shoe_img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
-    stretched_shoe = stretch_shoe(shoe_img, mask_img)
+    stretched_shoe = scale_shoe(shoe_img, mask_img)
 
-    # if DISPLAY_IMAGES == True:
-    cv2.imshow('stretched shoe', stretched_shoe)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    if DISPLAY_IMAGES == True:
+        cv2.imshow('stretched shoe', stretched_shoe)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     return stretched_shoe
 
@@ -72,13 +72,33 @@ def extract_classification_data(class_results):
 
     return sorted_classification_data
 
-def stretch_shoe(cv_image, mask_image):
+def scale_shoe(cv_image, mask_image):
     # Find the bounding box of the shoe mask
     contours, _ = cv2.findContours(mask_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     x,y,w,h = cv2.boundingRect(contours[0])
 
-    # Extract the shoe from the image using the bounding box
-    stretched_shoe = cv_image[y:y+h, x:x+w]
+     # Calculate scaling factors to fit width and height
+    scale_x = cv_image.shape[1] / w
+    scale_y = cv_image.shape[0] / h
 
-    return stretched_shoe
+    # Choose the smaller scaling factor to avoid cropping
+    scale_factor = min(scale_x, scale_y)
+
+    # Resize the shoe region
+    stretched_shoe = cv2.resize(cv_image[y:y+h, x:x+w], None, fx=scale_factor, fy=scale_factor)
+
+    # Create a white background image
+    result_image = np.full(cv_image.shape, 255, dtype=np.uint8)
+
+    # Calculate the y-offset to place the shoe at the bottom
+    y_offset = result_image.shape[0] - stretched_shoe.shape[0]
+
+    # Calculate x-offset to center horizontally
+    x_offset = (result_image.shape[1] - stretched_shoe.shape[1]) // 2
+
+    # Paste the stretched shoe onto the white background
+    result_image[y_offset:y_offset + stretched_shoe.shape[0],
+                 x_offset:x_offset + stretched_shoe.shape[1]] = stretched_shoe
+
+    return result_image
 

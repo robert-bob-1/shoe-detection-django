@@ -68,4 +68,18 @@ class ShoeHistograms(models.Model):
     blue_histogram = models.BinaryField()
 
     def __str__(self):
-        return self.shoe_image.shoe.name
+        return f"RGB histograms for {self.shoe_image.shoe.name}"
+
+class ShoeLBP(models.Model):
+    shoe_image = models.ForeignKey(ShoeImage, on_delete=models.CASCADE)
+    lbp_histogram = models.BinaryField()
+
+    def __str__(self):
+        return f"LBP for {self.shoe_image.shoe.name}"
+
+class ShoeHOG(models.Model):
+    shoe_image = models.ForeignKey(ShoeImage, on_delete=models.CASCADE)
+    hog_descriptor = models.BinaryField()
+
+    def __str__(self):
+        return f"HOG for {self.shoe_image.shoe.name}"
