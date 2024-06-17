@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-def extract_shoe(inference_results, cv_image, DISPLAY_IMAGES=False):
+def extract_shoe(inference_results, cv_image, DISPLAY_IMAGES=True):
     # Extract mask
     masks = inference_results[0].masks
 
@@ -25,13 +25,30 @@ def extract_shoe(inference_results, cv_image, DISPLAY_IMAGES=False):
 
     # Extract the shoe from the image using the mask
     shoe_img = cv2.bitwise_and(cv_image, cv_image, mask=mask_img)
+     # Create a white background image
+    white_background = np.full(cv_image.shape, 255, dtype=np.uint8)
 
-    if DISPLAY_IMAGES == True:
-        cv2.imshow('shoe', shoe_img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+    # Use bitwise NOT to invert the mask, selecting the background
+    inverted_mask = cv2.bitwise_not(mask_img)
 
-    return shoe_img
+    # Apply the inverted mask to the white background
+    white_background = cv2.bitwise_and(white_background, white_background, mask=inverted_mask)
+
+    # Combine the shoe with the white background
+    shoe_img = cv2.bitwise_or(shoe_img, white_background)
+    # if DISPLAY_IMAGES == True:
+    cv2.imshow('shoe', shoe_img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    stretched_shoe = stretch_shoe(shoe_img, mask_img)
+
+    # if DISPLAY_IMAGES == True:
+    cv2.imshow('stretched shoe', stretched_shoe)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    return stretched_shoe
 
 def extract_classification_data(class_results):
     result = class_results[0]
@@ -55,4 +72,13 @@ def extract_classification_data(class_results):
 
     return sorted_classification_data
 
+def stretch_shoe(cv_image, mask_image):
+    # Find the bounding box of the shoe mask
+    contours, _ = cv2.findContours(mask_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    x,y,w,h = cv2.boundingRect(contours[0])
+
+    # Extract the shoe from the image using the bounding box
+    stretched_shoe = cv_image[y:y+h, x:x+w]
+
+    return stretched_shoe
 

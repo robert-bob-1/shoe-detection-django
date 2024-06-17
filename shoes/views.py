@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view
 
 from evaluate.models import ShoeMetadata, ShoeImage
 
-from shoes.serializer import ShoeMetadataAndImagesSerializer
+from shoes.serializer import ShoeImageSerializer, ShoeMetadataAndImagesSerializer
 
 @api_view(['GET'])
 def get_all(request):
@@ -26,7 +26,14 @@ def get_all(request):
         'total': paginator.count
     }, status=200)
 
-    # response = JsonResponse({'message': 'Hello, world!'})
-    # response['Access-Control-Allow-Origin'] = 'http://localhost:4200'
+@api_view(['GET'])
+def get_images(request):
+    try:
+        shoe_images = ShoeImage.objects.all()
+        serialized_shoes = ShoeImageSerializer(shoe_images, many=True)
+    except:
+        return Response({'error': 'Error fetching shoe images'}, status=500)
 
-    # return response
+    return Response({
+        'shoes': serialized_shoes.data
+    }, status=200)

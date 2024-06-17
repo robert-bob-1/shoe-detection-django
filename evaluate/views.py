@@ -1,9 +1,13 @@
+import cv2
 from django.shortcuts import get_object_or_404
+import requests
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
+
 from .utils.cpp_service import compute_CPP_properties_and_save
 from .utils.database import save_image_classification_data, save_product_classification_data
+from .utils.exceptions import DuplicateProductException
 from .utils.image_processing import extract_shoe_info_from_image
 from .utils.scraping import scrape_product_object_and_save, scrape_product_urls
 
@@ -35,7 +39,7 @@ def scrape_product(request):
                 save_image_classification_data(shoe_images_ids[i], sorted_classification_data)
                 all_classification_data.append(sorted_classification_data)
 
-                # compute_CPP_properties_and_save(extracted_shoe, shoe_images_ids[i])
+                compute_CPP_properties_and_save(extracted_shoe, shoe_images_ids[i])
             except Exception as e:
                 print(f'Error processing image: {str(e)}')
                 continue
@@ -58,6 +62,8 @@ def scrape_page(request):
         for product_url in product_urls:
             try:
                 shoe_metadata, shoe_images, shoe_images_ids = scrape_product_object_and_save(product_url)
+            except DuplicateProductException as e:
+                continue
             except Exception as e:
                 return Response({'error': f'Error processing product: {str(e)}'}, status=500)
 
@@ -77,6 +83,7 @@ def scrape_page(request):
 
     return Response({'message': 'Product URLs scraped successfully'}, status=200)
 
+# Method to recalculate properties of all
 
 @api_view(['POST'])
 def evaluate_color(request):
@@ -87,20 +94,21 @@ def evaluate_color(request):
 
     extracted_shoe_image, sorted_classification_data = extract_shoe_info_from_image(image, DISPLAY_IMAGES=False)
 
-    # try:
-    #     # Send the extracted shoe image to the Evaluator API for further processing
-    #     img_encoded = cv2.imencode('.jpg', extracted_shoe_img)[1].tostring()
-    #     multipart_form_data = {'file': ('shoe.jpg', img_encoded, 'image/jpeg')}
 
-    #     response = requests.post('http://localhost:8081/evaluate', files=multipart_form_data)
+    try:
+        # # Send the extracted shoe image to the Evaluator API for further processing
+        img_encoded = cv2.imencode('.jpg', extracted_shoe_image)[1].tostring()
+        # multipart_form_data = {'file': ('shoe.jpg', img_encoded, 'image/jpeg')}
 
-    #     # print(response.json())
+        # response = requests.post('http://localhost:8081/evaluate', files=multipart_form_data)
 
-    #     if response.status_code != 200:
-    #         raise Exception(response.json())
+        # # print(response.json())
 
-    # except Exception as e:
-    #     return Response({'error': f'Error sending image to Evaluator API: {str(e)}'}, status=500)
+        # if response.status_code != 200:
+        #     raise Exception(response.json())
+
+    except Exception as e:
+        return Response({'error': f'Error sending image to Evaluator API: {str(e)}'}, status=500)
 
     # # fetch received images and return a response containing the image data
     # try:
@@ -133,3 +141,19 @@ def evaluate_color(request):
     #     'total': paginator.count
     # }, status=200)
     return Response({'message': 'Image processed successfully'}, status=200)
+
+
+@api_view(['POST'])
+def evaluate_shoe_type(request):
+    shoe_image = request.FILES.get('image')
+    if not shoe_image:
+        return Response({'error': 'Shoe type is required'}, status=400)
+
+    try:
+        extracted_shoe, sorted_classification_data = extract_shoe_info_from_image(shoe_image, DISPLAY_IMAGES=False)
+    except Exception as e:
+        return Response({'error': f'Error fetching shoe images: {str(e)}'}, status=500)
+
+    return Response({
+        'shoe_type': sorted_classification_data
+    }, status=200)

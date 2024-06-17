@@ -15,7 +15,7 @@ class_names = ['boots', 'flip_flops', 'loafers', 'sandals', 'sneakers', 'soccer_
 
 
 
-def extract_shoe_info_from_image(image, DISPLAY_IMAGES=True):
+def extract_shoe_info_from_image(image, DISPLAY_IMAGES=False):
     try:
         cv2_image = from_InMemoryFile_to_cv2image(image, DISPLAY_IMAGES)
 
@@ -41,7 +41,7 @@ def segmented_shoe_from_cv2_image(cv2_image, DISPLAY_IMAGES=False):
 def shoe_class_from_cv2_image(img_cv2) -> list:
     # Compute the shoe class
     classification_model = YOLO('../models/yolov8-classification-last.pt')
-    class_results = classification_model([img_cv2], show=True, save=False, device=0)
+    class_results = classification_model([img_cv2], save=False, device=0)
 
     # Extract the classification data
     sorted_classification_data = extract_classification_data(class_results)
@@ -49,7 +49,7 @@ def shoe_class_from_cv2_image(img_cv2) -> list:
 
     return sorted_classification_data
 
-def from_InMemoryFile_to_cv2image(inMemoryUploadedFile, DISPLAY_IMAGES=True) -> np.ndarray:
+def from_InMemoryFile_to_cv2image(inMemoryUploadedFile, DISPLAY_IMAGES=False) -> np.ndarray:
     if inMemoryUploadedFile is None:
         raise Exception('No image provided')
     numpy_image = None

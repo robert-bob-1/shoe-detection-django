@@ -59,3 +59,13 @@ class ShoeClassification(models.Model):
 
     def __str__(self):
         return self.shoe_image.shoe.name
+
+
+class ShoeHistograms(models.Model):
+    shoe_image = models.ForeignKey(ShoeImage, on_delete=models.CASCADE)
+    red_histogram = models.BinaryField()
+    green_histogram = models.BinaryField()
+    blue_histogram = models.BinaryField()
+
+    def __str__(self):
+        return self.shoe_image.shoe.name

@@ -5,6 +5,7 @@ from selenium import webdriver
 from django.core.files.base import ContentFile
 
 from evaluate.models import ShoeImage, ShoeMetadata
+from evaluate.utils.exceptions import DuplicateProductException
 
 photos_dir = 'photos/'
 
@@ -44,15 +45,13 @@ def scrape_product_object(url):
     # Open a Chrome page with the given URL and get the html from the source
     driver.get(url)
     page_source = driver.page_source
-
     # Parse the HTML
     soup = BeautifulSoup(page_source, 'html.parser')
 
-    if not os.path.exists('photos'):
-        os.makedirs('photos')
-
     product_name = soup.find('strong', class_='product-name').text.strip().replace(' ', '-')
     print(product_name)
+    if ShoeMetadata.objects.filter(name=product_name).exists():
+        raise DuplicateProductException(f"Product with name {product_name} already exists")
 
     product_brand = soup.find('strong', class_='brand-name').text.strip()
     print(product_brand)
@@ -63,9 +62,11 @@ def scrape_product_object(url):
     price = float(price)
     print(price)
 
+    shoeMetadata = ShoeMetadata(name=product_name, brand=product_brand, price=price, url=url)
+
+
     product_images = scrape_product_photos(soup, product_name)
 
-    shoeMetadata = ShoeMetadata(name=product_name, brand=product_brand, price=price, url=url)
 
     return shoeMetadata, product_images
 
