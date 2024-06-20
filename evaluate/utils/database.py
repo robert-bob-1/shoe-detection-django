@@ -21,11 +21,13 @@ def save_product_classification_data(shoe_metadata, all_classification_data):
     #compute total confidence scores for each class
     confidence_scores_per_class = {}
 
+    print(f"all_classification_data: {all_classification_data}")
     for classification_data in all_classification_data:
         for class_name, confidence in classification_data.items():
             if class_name not in confidence_scores_per_class:
                 confidence_scores_per_class[class_name] = 0
             confidence_scores_per_class[class_name] += confidence
+    print(f"confidence_scores_per_class: {confidence_scores_per_class}")
 
     # Find the class with the highest confidence score
     max_confidence = 0
@@ -37,7 +39,11 @@ def save_product_classification_data(shoe_metadata, all_classification_data):
             max_confidence = confidence
             max_class = class_name
 
+    print(max_confidence, max_class)
+    print("all classification data before saving: ", all_classification_data)
+
     shoe_metadata.classification = max_class
     shoe_metadata.classification_confidence = max_confidence/len(all_classification_data)
+
     shoe_metadata.save()
 

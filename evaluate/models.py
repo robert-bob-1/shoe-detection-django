@@ -19,7 +19,8 @@ class ShoeMetadata(models.Model):
 
 class ShoeImage(models.Model):
     shoe = models.ForeignKey(ShoeMetadata, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='shoe_images/')
+    image_local = models.ImageField(upload_to='shoe_images/')
+    image = models.BinaryField()
 
     def __str__(self):
         return self.shoe.name
@@ -27,7 +28,7 @@ class ShoeImage(models.Model):
     @receiver(post_delete)
     def delete_image_file(sender, instance, **kwargs):
         if isinstance(instance, ShoeImage):
-            default_storage.delete(instance.image.name)
+            default_storage.delete(instance.image_local.name)
 
 class ShoeProperties(models.Model):
     shoe_image = models.ForeignKey(ShoeImage, on_delete=models.CASCADE)
@@ -73,13 +74,17 @@ class ShoeHistograms(models.Model):
 class ShoeLBP(models.Model):
     shoe_image = models.ForeignKey(ShoeImage, on_delete=models.CASCADE)
     lbp_histogram = models.BinaryField()
+    lbp_rows = models.IntegerField()
+    lbp_columns = models.IntegerField()
 
     def __str__(self):
-        return f"LBP for {self.shoe_image.shoe.name}"
+        return f"LBP histogram for {self.shoe_image.shoe.name}"
 
 class ShoeHOG(models.Model):
     shoe_image = models.ForeignKey(ShoeImage, on_delete=models.CASCADE)
     hog_descriptor = models.BinaryField()
+    hog_rows = models.IntegerField()
+    hog_columns = models.IntegerField()
 
     def __str__(self):
-        return f"HOG for {self.shoe_image.shoe.name}"
+        return f"HOG histogram for {self.shoe_image.shoe.name}"

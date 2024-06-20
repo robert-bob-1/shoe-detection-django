@@ -8,10 +8,10 @@ class ShoeImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoeImage
-        fields = ['id', 'image']
+        fields = ['id', 'image', 'image_local']
 
     def get_image(self, obj):
-        with open(obj.image.path, 'rb') as image_file:
+        with open(obj.image_local.path, 'rb') as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
 
 

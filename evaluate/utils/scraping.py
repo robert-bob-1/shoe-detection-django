@@ -96,6 +96,8 @@ def scrape_product_object_and_save(url):
     try:
         print(url)
         shoe_metadata, shoe_images = scrape_product_object(url)
+    except DuplicateProductException as e:
+        raise DuplicateProductException(e)
     except Exception as e:
         raise Exception(f"Error scraping product: {e}")
 
@@ -107,10 +109,12 @@ def scrape_product_object_and_save(url):
             if i == 3:
                 continue
             image_files.append(shoe_images[i])
+            # Old rendition of saving image in ImageField
             image_file = ContentFile(shoe_images[i])
             image_file.name = f'{shoe_metadata.name}_{i}.jpg'
 
-            shoe_image = ShoeImage(shoe=shoe_metadata, image=image_file)
+
+            shoe_image = ShoeImage(shoe=shoe_metadata, image=shoe_images[i], image_local=image_file)
             shoe_image.save()
             shoe_images_ids.append(shoe_image.id)
 
