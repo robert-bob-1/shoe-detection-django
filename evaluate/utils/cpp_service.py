@@ -5,6 +5,11 @@ import requests
 
 from evaluate.utils.debug import display_image
 
+class ShoeImageIdAndConfidence:
+    def __init__(self, shoe_image_id, confidence):
+        self.shoe_image_id = shoe_image_id
+        self.confidence = confidence
+
 def compute_CPP_properties_and_save(extracted_shoe_img, shoe_image_id):
     try:
         img_encoded = cv2.imencode('.jpg', extracted_shoe_img)[1].tostring()
@@ -46,6 +51,16 @@ def evaluate_all_properties_no_classification_CPP(extracted_shoe_image):
 
         if response.status_code != 200:
             raise Exception(response.json())
+
+        # Parse response
+        response_data = response.json()
+        # print(response_data)
+        imageID_confidence_pairs = response_data['shoeImageIDs']
+
+        return imageID_confidence_pairs
+
     except Exception as e:
         print(f'Error sending image to Evaluator API: {str(e)}')
         raise Exception(f'Error sending image to Evaluator API: {str(e)}')
+
+

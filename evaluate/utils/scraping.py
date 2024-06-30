@@ -5,7 +5,7 @@ from selenium import webdriver
 from django.core.files.base import ContentFile
 
 from evaluate.models import ShoeImage, ShoeMetadata
-from evaluate.utils.exceptions import DuplicateProductException
+# from shoe_detection_web_app.scraping.exceptions import DuplicateProductException
 
 photos_dir = 'photos/'
 
@@ -23,15 +23,15 @@ def scrape_product_photos(soup, product_name):
             img_width = int(image.get('width', 0))
             if img_width > 300:  # value selected to exclude other low res shoes. No other relevant attributes to differentiate other than width
                 img_src = image.get('src')
-                img_name = f'{photos_dir}{product_name}_{image_count}.jpg'
-                image_count += 1
+                # img_name = f'{photos_dir}{product_name}_{image_count}.jpg'
+                # image_count += 1
                 # Download image
                 img_data = requests.get(img_src)
 
                 product_images.append(img_data.content)
                 # with open(img_name, 'wb') as file:
                 #     file.write(img_data.content)
-                print(f"Downloaded {img_name}")
+                # print(f"Downloaded {img_name}")
         except Exception as e:
             print(f"Error downloading image {i}: {e}")
             # Ignore images with invalid width
@@ -50,8 +50,8 @@ def scrape_product_object(url):
 
     product_name = soup.find('strong', class_='product-name').text.strip().replace(' ', '-')
     print(product_name)
-    if ShoeMetadata.objects.filter(name=product_name).exists():
-        raise DuplicateProductException(f"Product with name {product_name} already exists")
+    # if ShoeMetadata.objects.filter(name=product_name).exists():
+        # raise DuplicateProductException(f"Product with name {product_name} already exists")
 
     product_brand = soup.find('strong', class_='brand-name').text.strip()
     print(product_brand)
@@ -96,8 +96,8 @@ def scrape_product_object_and_save(url):
     try:
         print(url)
         shoe_metadata, shoe_images = scrape_product_object(url)
-    except DuplicateProductException as e:
-        raise DuplicateProductException(e)
+    # except DuplicateProductException as e:
+    #     raise DuplicateProductException(e)
     except Exception as e:
         raise Exception(f"Error scraping product: {e}")
 

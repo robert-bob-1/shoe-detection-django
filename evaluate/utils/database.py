@@ -1,4 +1,5 @@
 
+import base64
 from evaluate.models import ShoeClassification, ShoeImage
 
 
@@ -14,8 +15,7 @@ def save_image_classification_data(shoe_image_id, classification_data):
         soccer_shoes_confidence=classification_data['soccer_shoes']
     )
 
-    print(f"Classification data: {classification}")
-
+    classification.save()
 
 def save_product_classification_data(shoe_metadata, all_classification_data):
     #compute total confidence scores for each class
@@ -47,3 +47,12 @@ def save_product_classification_data(shoe_metadata, all_classification_data):
 
     shoe_metadata.save()
 
+
+def get_shoe_images_by_ids(shoe_images_ids):
+    shoe_images = []
+    for shoe_image_id in shoe_images_ids:
+        shoe_image = ShoeImage.objects.get(id=shoe_image_id)
+        encoded_image = base64.b64encode(shoe_image.image).decode('utf-8')
+        shoe_images.append(encoded_image)
+
+    return shoe_images

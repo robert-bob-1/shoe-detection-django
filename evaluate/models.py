@@ -5,12 +5,22 @@ from django.core.files.storage import default_storage
 
 # Create your models here.
 
+class Website(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=30, unique=True)
+    url = models.URLField(unique=True)
+    logo = models.BinaryField()
+
+    def __str__(self):
+        return self.name
+
 class ShoeMetadata(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     brand = models.CharField(max_length=30, default='Brand')
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    url = models.URLField()
+    url = models.URLField(unique=True)
+    website = models.ForeignKey(Website, on_delete=models.CASCADE, default=1)
     classification = models.CharField(max_length=30, default='Unknown')
     classification_confidence = models.FloatField(default=0.0)
 

@@ -75,14 +75,8 @@ def extract_classification_data(class_results):
     return sorted_classification_data
 
 def scale_shoe(cv_image, mask_image):
-
-    # display_image(cv_image)
-    # display_image(mask_image)
-
     # Rotate the shoe image to be generally parallel to the x axis
     rotated_cv2_image, rotated_mask = rotate_image(cv_image, mask_image)
-    # display_image(rotated_cv2_image)
-    # display_image(rotated_mask)
 
     # Find the bounding box of the shoe mask
     contours, _ = cv2.findContours(rotated_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -113,7 +107,7 @@ def scale_shoe(cv_image, mask_image):
     result_image[y_offset:y_offset + stretched_shoe.shape[0],
                  x_offset:x_offset + stretched_shoe.shape[1]] = stretched_shoe
 
-    display_image(result_image)
+    # display_image(result_image)
     return result_image
 
 def rotate_image(cv2_image, mask_image):
