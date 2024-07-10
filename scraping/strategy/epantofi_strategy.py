@@ -116,5 +116,6 @@ class EPantofiScrapingStrategy(AbstractScrapingStrategy):
 
         return images
 
-
+    def ignore_image(self, i):
+        return i == 3
 

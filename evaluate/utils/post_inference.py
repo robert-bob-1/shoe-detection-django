@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 
 from evaluate.utils.debug import display_image
+from evaluate.utils.exceptions import SegmentationException
 
 
 def extract_shoe(inference_results, cv_image, DISPLAY_IMAGES=False):
@@ -9,8 +10,13 @@ def extract_shoe(inference_results, cv_image, DISPLAY_IMAGES=False):
     masks = inference_results[0].masks
 
     # Extract the first mask pixel coordinates
+    if masks == None:
+        return cv_image
+        # raise SegmentationException("Product could not be segmented. Please try again by cropping on or out the image of the shoe pair, or by trying another image.")
+
     mask = masks.xy[0]
 
+    print(f"Mask shape: {mask.shape}")
     # Create an empty mask image with the same dimensions as the input image
     mask_img = np.zeros(cv_image.shape[:2], dtype=np.uint8)
 
@@ -86,11 +92,18 @@ def scale_shoe(cv_image, mask_image):
     scale_x = rotated_cv2_image.shape[1] / w
     scale_y = rotated_cv2_image.shape[0] / h
 
+    # Test display the rectangle
+    box = cv2.boxPoints(((x + w // 2, y + h // 2), (w, h), 0))
+    box = np.int0(box)
+    cv2.drawContours(rotated_cv2_image, [box], 0, (0, 0, 255), 2)
+    # display_image(rotated_cv2_image, 'Bounding rectangle')
+
     # Choose the smaller scaling factor to avoid cropping
     scale_factor = min(scale_x, scale_y)
 
     # We need a stretched shoe image to fit in the found location at the bottom of the image
     stretched_shoe = cv2.resize(rotated_cv2_image[y:y+h, x:x+w], None, fx=scale_factor, fy=scale_factor)
+    # display_image(stretched_shoe, 'Stretched shoe')
 
     # Create a white background image to paste the stretched image over
     result_image = np.full(rotated_cv2_image.shape, 255, dtype=np.uint8)

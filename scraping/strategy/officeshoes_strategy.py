@@ -152,5 +152,6 @@ class OfficeShoesScrapingStrategy(AbstractScrapingStrategy):
 
         return images
 
-
+    def ignore_image(self, i):
+        return i == 2 or i == 5
 

@@ -11,8 +11,21 @@ from evaluate.utils.image_processing import extract_shoe_info_from_image
 from evaluate.models import ShoeImage
 
 class AbstractScrapingStrategy(ABC):
+    @property
+    @abstractmethod
+    def website_object(self):
+        pass
 
-    """ Abstract base class implementing scraping strategies for different websites."""
+    @property
+    @abstractmethod
+    def website_name(self):
+        pass
+
+    @property
+    @abstractmethod
+    def root_url(self):
+        pass
+
     @abstractmethod
     def scrape_pages(self, url, page_interval_start, page_interval_end, page_number_url_suffix):
         """ Scrape all products from given pages, if website supports simple url page changes. """
@@ -37,6 +50,11 @@ class AbstractScrapingStrategy(ABC):
     @abstractmethod
     def scrape_images(self, soup):
         """ Scrape shoe images from a product page. """
+        pass
+
+    @abstractmethod
+    def ignore_image(self, i):
+        """ Ignore image at index i in case it is unrepresentative for the shoe (if shoes at a given position are always the sole of the shoe for example). """
         pass
 
     def get_page_soup(self, url):
@@ -67,8 +85,8 @@ class AbstractScrapingStrategy(ABC):
         """ Save the images in the database. """
         all_classification_data = []
         for i in range(len(shoe_images)):
-            # Skip the 4th image as it is almost always the sole of the shoe
-            if i == 3:
+            # Skip the nth image if it is unrepresentative for the shoe (if it is in a strange/unnatural position)
+            if self.ignore_image(i):
                 continue
 
 

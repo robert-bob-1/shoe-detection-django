@@ -8,6 +8,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from shoe_detection.constants import default_image_size
 from evaluate.utils.debug import display_image
 from evaluate.utils.post_inference import extract_classification_data, extract_shoe
+from evaluate.utils.exceptions import SegmentationException
 
 PATH_TO_SEG_MODEL = '../models/best-seg.pt'
 SEGMENTATION_MODEL = YOLO(PATH_TO_SEG_MODEL)
@@ -19,25 +20,31 @@ class_names = ['boots', 'flip_flops', 'loafers', 'sandals', 'sneakers', 'soccer_
 def extract_shoe_info_from_image(image, DISPLAY_IMAGES=False):
     try:
         cv2_image = from_InMemoryFile_to_cv2image(image, DISPLAY_IMAGES)
-        extracted_shoe_img = segmented_shoe_from_cv2_image(cv2_image, DISPLAY_IMAGES)
+        extracted_shoe_img, segmentation_succesful = segmented_shoe_from_cv2_image(cv2_image, DISPLAY_IMAGES)
+        print("segmentation_succesful: ", segmentation_succesful)
         sorted_classification_data = shoe_class_from_cv2_image(cv2_image)
 
     except Exception as e:
         print(f'extract_shoe_info_from_image: {str(e)}')
         raise Exception(f'extract_shoe_info_from_image: {str(e)}')
 
-    return extracted_shoe_img, sorted_classification_data
+    return extracted_shoe_img, sorted_classification_data, segmentation_succesful
 
 
 
 def segmented_shoe_from_cv2_image(cv2_image, DISPLAY_IMAGES=False):
     print("cv2_image size: ", cv2_image.shape)
     seg_results = SEGMENTATION_MODEL(cv2_image, show=DISPLAY_IMAGES, device=0)
+
     # Extract the shoe from the image as cv2 image
     extracted_shoe_img = extract_shoe(seg_results, cv2_image, DISPLAY_IMAGES)
     print("extracted_shoe_img size: ", extracted_shoe_img.shape)
 
-    return extracted_shoe_img
+
+    if np.array_equal(extracted_shoe_img, cv2_image):
+        return cv2_image, False
+
+    return extracted_shoe_img, True
 
 def shoe_class_from_cv2_image(img_cv2) -> list:
     # Compute the shoe class

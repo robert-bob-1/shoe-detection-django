@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view
 
 from evaluate.models import ShoeMetadata, ShoeImage
 
-from shoes.serializer import ShoeImageSerializer, ShoeMetadataAndImagesSerializer
+from evaluate.utils.serializer import ShoeImageSerializer, ShoeMetadataAndImagesSerializer
 
 @api_view(['GET'])
 def get_all(request):

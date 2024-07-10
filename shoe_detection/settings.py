@@ -36,6 +36,8 @@ ALLOWED_HOSTS = [
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:4200',
+    'https://192.168.1.129:4200',
+    'https://shoespotter.go.ro:4200'
 ]
 
 
